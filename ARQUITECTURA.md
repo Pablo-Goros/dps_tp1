@@ -49,7 +49,7 @@ flowchart TB
 Esto es la **Inversión de Dependencias** (la "D" de SOLID) aplicada
 literalmente: las flechas de dependencia en el código **apuntan hacia el
 negocio**, nunca al revés. `CurrencyManager` (el negocio) no importa
-`Gson`, no importa `Unirest`, no sabe que existe `currencyapi.com`. Sólo
+`Gson`, no importa `Unirest`, no sabe que existe `freecurrencyapi.com`. Sólo
 conoce 3 interfaces (`ports`). Quien sí sabe todo eso son los adapters, que
 viven en `infrastructure` y dependen del negocio (implementan sus
 interfaces), no al revés.
@@ -281,11 +281,12 @@ convertirlo en la excepción correcta. En vez de repetir eso en cada uno
 males"*), esa lógica vive en una única clase de paquete `infrastructure/api`:
 
 - **`CurrencyApiGateway`** (paquete-privada, nadie fuera de `infrastructure.api`
-  la ve): ejecuta el GET contra `api.currencyapi.com/v3/...` y traduce
+  la ve): ejecuta el GET contra `api.freecurrencyapi.com/v1/...` y traduce
   errores de transporte/HTTP a excepciones de dominio.
-- **`ExchangeRatesJson`** (paquete-privada): como `/latest` y `/historical`
-  devuelven **exactamente la misma forma de JSON** (`{"meta":{"last_updated_at":...},
-  "data":{"CODE":{"value":...}}}`), el parseo se comparte entre
+- **`ExchangeRatesJson`** (paquete-privada): conoce las dos formas de respuesta
+  de FreeCurrencyAPI: `/latest` devuelve `{"data":{"CODE": rate}}` y
+  `/historical` devuelve `{"data":{"YYYY-MM-DD":{"CODE": rate}}}`. La
+  conversión común de esos valores a `CurrencyRate` se comparte entre
   `CurrencyApiRateProvider` y `CurrencyApiHistoricalRateProvider`.
 
 ```mermaid
@@ -295,17 +296,17 @@ sequenceDiagram
     participant Rp as CurrencyApiRateProvider
     participant Gw as CurrencyApiGateway
     participant Http as UnirestHttpClient
-    participant Api as api.currencyapi.com
+    participant Api as api.freecurrencyapi.com
 
     Cli->>Mgr: convert(100 USD, [EUR, JPY])
     Mgr->>Rp: getRates(USD, [EUR, JPY])
     Rp->>Gw: get("latest", {base_currency, currencies})
     Gw->>Http: get(url, params, headers)
-    Http->>Api: GET /v3/latest?...
-    Api-->>Http: 200 { meta, data }
+    Http->>Api: GET /v1/latest?...
+    Api-->>Http: 200 { data }
     Http-->>Gw: HttpResponse(body, 200)
     Gw-->>Rp: body (String)
-    Rp->>Rp: ExchangeRatesJson.parseRates(body, [EUR, JPY])
+    Rp->>Rp: ExchangeRatesJson.parseLatestRates(body, [EUR, JPY], timestamp)
     Rp-->>Mgr: Map(EUR->rate, JPY->rate)
     Mgr->>Mgr: aplica cada rate al monto → ConvertedAmount
     Mgr-->>Cli: List<ConvertedAmount>
@@ -411,7 +412,7 @@ testear, sólo cableado.
 | # | Funcionalidad pedida | Clases involucradas |
 |---|---|---|
 | 1 | Listar monedas soportadas | `SupportedCurrencyProvider` → `CurrencyApiSupportedCurrencyProvider` → `CurrencyManager.listSupportedCurrencies()` |
-| 2 | Timestamp en la respuesta de conversión | `CurrencyRate.timestamp` (poblado desde `meta.last_updated_at` en `ExchangeRatesJson`) |
+| 2 | Timestamp en la respuesta de conversión | `CurrencyRate.timestamp` (instante de consulta para tasas actuales; fecha solicitada a las 00:00 UTC para tasas históricas, porque FreeCurrencyAPI no devuelve un timestamp) |
 | 3 | Cotización sin convertir un monto | `CurrencyRateProvider.getRate()` (default method) → `CurrencyManager.getRate()` |
 | 4 | Manejo claro de errores de conexión/API | `CurrencyConnectionException`, `CurrencyApiException`, `CurrencyNotAvailableException`, traducidas en `CurrencyApiGateway` |
 | 5 | Convertir un monto a múltiples monedas | `CurrencyRateProvider.getRates()` (batch) → `CurrencyManager.convert(amount, List<Currency>)` |
@@ -467,16 +468,16 @@ ramas cubiertas** (fuera de `Main`).
   config?** Es la opción que menos fricción agrega (no hay que gestionar un
   archivo adicional ni cuidar que no se suba a git) y es el estándar de
   facto para credenciales en apps chicas/CLI.
-- **¿Por qué se mantuvo `api.currencyapi.com` en vez de migrar a
-  `freecurrencyapi.com`?** Decisión explícita tomada en conjunto: se
-  prioriza no romper la key/código que ya se usó en la clase.
+- **¿Por qué se usa `freecurrencyapi.com`?** Es el proveedor requerido por la
+  consigna. Los adapters respetan sus contratos `/v1/currencies`, `/v1/latest`
+  y `/v1/historical`; la API key se envía en el header `apikey`.
 
 ---
 
 ## 15. Cómo correr el proyecto
 
 ```bash
-export CURRENCY_API_KEY="tu-api-key-de-currencyapi.com"
+export CURRENCY_API_KEY="tu-api-key-de-freecurrencyapi.com"
 mvn verify        # compila, corre los 41 tests, chequea 100% de cobertura
 mvn exec:java -Dexec.mainClass="edu.itba.dps.tp1.exchange.main.Main"
 ```
