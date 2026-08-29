@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Currency;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -66,6 +67,8 @@ class CurrencyConverterCliTest {
 		assertTrue(writtenMessages.get(1).contains("USD -> EUR rate"));
 		assertTrue(writtenMessages.get(2).contains("rate used"));
 		assertTrue(writtenMessages.stream().anyMatch(m -> m.contains("2024-11-20")));
-		assertTrue(writtenMessages.size() >= 5);
+		assertEquals(7, writtenMessages.size());
+		assertTrue(writtenMessages.subList(2, 7).stream()
+				.allMatch(message -> message.contains("timestamp: " + TIMESTAMP)));
 	}
 }

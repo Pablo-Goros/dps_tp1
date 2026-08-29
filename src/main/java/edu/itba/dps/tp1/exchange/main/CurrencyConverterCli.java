@@ -61,6 +61,8 @@ public class CurrencyConverterCli {
 	}
 
 	private String describe(ConvertedAmount converted) {
-		return converted.amount() + " (rate used: " + converted.rateUsed().rate() + ")";
+		return converted.amount()
+				+ " (rate used: " + converted.rateUsed().rate()
+				+ ", timestamp: " + converted.rateUsed().timestamp() + ")";
 	}
 }
