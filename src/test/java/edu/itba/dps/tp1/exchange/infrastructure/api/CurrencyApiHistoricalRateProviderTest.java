@@ -28,9 +28,9 @@ class CurrencyApiHistoricalRateProviderTest {
 	private static final Currency JPY = Currency.getInstance("JPY");
 	private static final LocalDate DATE = LocalDate.of(2024, 11, 20);
 
-	// Captured from a real call to api.currencyapi.com/v3/historical.
+	// Matches the documented FreeCurrencyAPI /v1/historical response shape.
 	private static final String RESPONSE_BODY = """
-			{"meta":{"last_updated_at":"2024-11-20T23:59:59Z"},"data":{"EUR":{"code":"EUR","value":0.9480900974},"JPY":{"code":"JPY","value":155.2721421669}}}""";
+			{"data":{"2024-11-20":{"EUR":0.9480900974,"JPY":155.2721421669}}}""";
 
 	@Mock
 	private HttpClient httpClient;
@@ -44,7 +44,7 @@ class CurrencyApiHistoricalRateProviderTest {
 
 	@Test
 	void requestsTheHistoricalEndpointWithTheGivenDate() {
-		when(httpClient.get(eq(URI.create("https://api.currencyapi.com/v3/historical")),
+		when(httpClient.get(eq(URI.create("https://api.freecurrencyapi.com/v1/historical")),
 				eq(Map.of("base_currency", "USD", "currencies", "EUR,JPY", "date", "2024-11-20")), any()))
 				.thenReturn(new HttpResponse(RESPONSE_BODY, 200));
 
@@ -52,6 +52,6 @@ class CurrencyApiHistoricalRateProviderTest {
 
 		assertEquals(0.9480900974, rates.get(EUR).rate());
 		assertEquals(155.2721421669, rates.get(JPY).rate());
-		assertEquals(Instant.parse("2024-11-20T23:59:59Z"), rates.get(EUR).timestamp());
+		assertEquals(Instant.parse("2024-11-20T00:00:00Z"), rates.get(EUR).timestamp());
 	}
 }

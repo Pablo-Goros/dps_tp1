@@ -4,6 +4,7 @@ import edu.itba.dps.tp1.exchange.domain.CurrencyRate;
 import edu.itba.dps.tp1.exchange.io.http.HttpClient;
 import edu.itba.dps.tp1.exchange.ports.CurrencyRateProvider;
 
+import java.time.Instant;
 import java.util.Currency;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +22,6 @@ public class CurrencyApiRateProvider implements CurrencyRateProvider {
 		final String body = gateway.get("latest", Map.of(
 				"base_currency", from.getCurrencyCode(),
 				"currencies", ExchangeRatesJson.codesOf(to)));
-		return ExchangeRatesJson.parseRates(body, to);
+		return ExchangeRatesJson.parseLatestRates(body, to, Instant.now());
 	}
 }

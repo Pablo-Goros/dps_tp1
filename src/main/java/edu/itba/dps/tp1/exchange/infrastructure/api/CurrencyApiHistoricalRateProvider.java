@@ -23,6 +23,6 @@ public class CurrencyApiHistoricalRateProvider implements HistoricalCurrencyRate
 				"base_currency", from.getCurrencyCode(),
 				"currencies", ExchangeRatesJson.codesOf(to),
 				"date", date.toString()));
-		return ExchangeRatesJson.parseRates(body, to);
+		return ExchangeRatesJson.parseHistoricalRates(body, to, date);
 	}
 }

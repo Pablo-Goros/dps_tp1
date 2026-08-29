@@ -35,7 +35,7 @@ class CurrencyApiGatewayTest {
 
 	@Test
 	void returnsTheBodyOnASuccessfulResponse() {
-		when(httpClient.get(eq(URI.create("https://api.currencyapi.com/v3/latest")), any(), any()))
+		when(httpClient.get(eq(URI.create("https://api.freecurrencyapi.com/v1/latest")), any(), any()))
 				.thenReturn(new HttpResponse("{\"ok\":true}", 200));
 
 		assertEquals("{\"ok\":true}", gateway.get("latest", Map.of()));

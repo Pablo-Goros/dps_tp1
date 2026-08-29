@@ -11,7 +11,7 @@ import edu.itba.dps.tp1.exchange.io.http.HttpResponse;
 
 class CurrencyApiGateway {
 
-	private static final URI BASE_URL = URI.create("https://api.currencyapi.com/v3/");
+	private static final URI BASE_URL = URI.create("https://api.freecurrencyapi.com/v1/");
 
 	private final HttpClient httpClient;
 	private final String apiKey;

@@ -14,7 +14,7 @@ import edu.itba.dps.tp1.exchange.io.OutputWriter;
 public class CurrencyConverterCli {
 
 	private static final Currency USD = Currency.getInstance("USD");
-	private static final Currency ARS = Currency.getInstance("ARS");
+	private static final Currency BRL = Currency.getInstance("BRL");
 	private static final Currency EUR = Currency.getInstance("EUR");
 	private static final Currency JPY = Currency.getInstance("JPY");
 	private static final LocalDate HISTORICAL_DATE = LocalDate.of(2024, 11, 20);
@@ -45,7 +45,7 @@ public class CurrencyConverterCli {
 	}
 
 	private void printSingleConversion() {
-		final ConvertedAmount converted = currencyManager.convert(new MoneyAmount(ARS, 100), USD);
+		final ConvertedAmount converted = currencyManager.convert(new MoneyAmount(BRL, 100), USD);
 		output.write(describe(converted));
 	}
 

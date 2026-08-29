@@ -25,7 +25,7 @@ import static org.mockito.Mockito.when;
 class CurrencyConverterCliTest {
 
 	private static final Currency USD = Currency.getInstance("USD");
-	private static final Currency ARS = Currency.getInstance("ARS");
+	private static final Currency BRL = Currency.getInstance("BRL");
 	private static final Currency EUR = Currency.getInstance("EUR");
 	private static final Currency JPY = Currency.getInstance("JPY");
 	private static final Instant TIMESTAMP = Instant.parse("2026-08-27T23:59:59Z");
@@ -47,9 +47,9 @@ class CurrencyConverterCliTest {
 		final var eurRate = new CurrencyRate(0.9, TIMESTAMP);
 		final var jpyRate = new CurrencyRate(150, TIMESTAMP);
 
-		when(currencyManager.listSupportedCurrencies()).thenReturn(List.of(ARS, EUR, JPY, USD));
+		when(currencyManager.listSupportedCurrencies()).thenReturn(List.of(BRL, EUR, JPY, USD));
 		when(currencyManager.getRate(USD, EUR)).thenReturn(eurRate);
-		when(currencyManager.convert(eq(new MoneyAmount(ARS, 100)), eq(USD)))
+		when(currencyManager.convert(eq(new MoneyAmount(BRL, 100)), eq(USD)))
 				.thenReturn(new ConvertedAmount(USD, new MoneyAmount(USD, 10), eurRate));
 		when(currencyManager.convert(eq(new MoneyAmount(USD, 100)), eq(List.of(EUR, JPY))))
 				.thenReturn(List.of(

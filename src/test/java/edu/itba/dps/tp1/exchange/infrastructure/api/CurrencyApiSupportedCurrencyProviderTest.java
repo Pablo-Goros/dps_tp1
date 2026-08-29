@@ -18,7 +18,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class CurrencyApiSupportedCurrencyProviderTest {
 
-	// Based on a real call to api.currencyapi.com/v3/currencies, with an extra
+	// Matches the documented FreeCurrencyAPI /v1/currencies shape, with an extra
 	// malformed code (not 3 letters, so java.util.Currency always rejects it
 	// regardless of the JDK's ISO 4217 table) to exercise the skip branch.
 	private static final String RESPONSE_BODY = """
