@@ -41,7 +41,7 @@ public class CurrencyConverterCli {
 
 	private void printQuote() {
 		final CurrencyRate rate = currencyManager.getRate(USD, EUR);
-		output.write("USD -> EUR rate: " + rate.rate() + " (as of " + rate.timestamp() + ")");
+		output.write("USD -> EUR rate: " + rate.rate() + " (retrieved at " + rate.retrievedAt() + ")");
 	}
 
 	private void printSingleConversion() {
@@ -57,12 +57,15 @@ public class CurrencyConverterCli {
 	private void printHistoricalConversion() {
 		final List<ConvertedAmount> converted =
 				currencyManager.convert(new MoneyAmount(USD, 100), List.of(EUR, JPY), HISTORICAL_DATE);
-		converted.forEach(c -> output.write("(" + HISTORICAL_DATE + ") " + describe(c)));
+		converted.forEach(c -> output.write(describe(c)));
 	}
 
 	private String describe(ConvertedAmount converted) {
 		return converted.amount()
 				+ " (rate used: " + converted.rateUsed().rate()
-				+ ", timestamp: " + converted.rateUsed().timestamp() + ")";
+				+ converted.rateUsed().effectiveDate()
+						.map(date -> ", effective date: " + date)
+						.orElse("")
+				+ ", retrieved at: " + converted.rateUsed().retrievedAt() + ")";
 	}
 }

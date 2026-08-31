@@ -17,6 +17,7 @@ import java.time.LocalDate;
 import java.util.Currency;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
@@ -54,7 +55,7 @@ class CurrencyManagerTest {
 
 	@Test
 	void getsAQuoteWithoutConvertingAnyAmount() {
-		final var rate = new CurrencyRate(1.5, TIMESTAMP);
+		final var rate = new CurrencyRate(1.5, Optional.empty(), TIMESTAMP);
 		when(rateProvider.getRate(ARS, USD)).thenReturn(rate);
 
 		assertEquals(rate, manager.getRate(ARS, USD));
@@ -62,38 +63,38 @@ class CurrencyManagerTest {
 
 	@Test
 	void convertsASingleAmountUsingTheRateFromTheProvider() {
-		final var rate = new CurrencyRate(1.5, TIMESTAMP);
+		final var rate = new CurrencyRate(1.5, Optional.empty(), TIMESTAMP);
 		when(rateProvider.getRate(ARS, USD)).thenReturn(rate);
 
 		final var result = manager.convert(new MoneyAmount(ARS, 100), USD);
 
-		assertEquals(new ConvertedAmount(USD, new MoneyAmount(USD, 150), rate), result);
+		assertEquals(new ConvertedAmount(new MoneyAmount(USD, 150), rate), result);
 	}
 
 	@Test
 	void convertsTheSameAmountToMultipleCurrenciesAtOnce() {
-		final var eurRate = new CurrencyRate(0.9, TIMESTAMP);
-		final var jpyRate = new CurrencyRate(150, TIMESTAMP);
+		final var eurRate = new CurrencyRate(0.9, Optional.empty(), TIMESTAMP);
+		final var jpyRate = new CurrencyRate(150, Optional.empty(), TIMESTAMP);
 		when(rateProvider.getRates(USD, List.of(EUR, JPY))).thenReturn(Map.of(EUR, eurRate, JPY, jpyRate));
 
 		final var result = manager.convert(new MoneyAmount(USD, 100), List.of(EUR, JPY));
 
 		assertEquals(List.of(
-				new ConvertedAmount(EUR, new MoneyAmount(EUR, 90), eurRate),
-				new ConvertedAmount(JPY, new MoneyAmount(JPY, 15000), jpyRate)), result);
+				new ConvertedAmount(new MoneyAmount(EUR, 90), eurRate),
+				new ConvertedAmount(new MoneyAmount(JPY, 15000), jpyRate)), result);
 	}
 
 	@Test
 	void convertsToMultipleCurrenciesUsingAPastDateRate() {
-		final var eurRate = new CurrencyRate(0.95, TIMESTAMP);
-		final var jpyRate = new CurrencyRate(155, TIMESTAMP);
+		final var eurRate = new CurrencyRate(0.95, Optional.of(DATE), TIMESTAMP);
+		final var jpyRate = new CurrencyRate(155, Optional.of(DATE), TIMESTAMP);
 		when(historicalRateProvider.getRates(USD, List.of(EUR, JPY), DATE))
 				.thenReturn(Map.of(EUR, eurRate, JPY, jpyRate));
 
 		final var result = manager.convert(new MoneyAmount(USD, 100), List.of(EUR, JPY), DATE);
 
 		assertEquals(List.of(
-				new ConvertedAmount(EUR, new MoneyAmount(EUR, 95), eurRate),
-				new ConvertedAmount(JPY, new MoneyAmount(JPY, 15500), jpyRate)), result);
+				new ConvertedAmount(new MoneyAmount(EUR, 95), eurRate),
+				new ConvertedAmount(new MoneyAmount(JPY, 15500), jpyRate)), result);
 	}
 }

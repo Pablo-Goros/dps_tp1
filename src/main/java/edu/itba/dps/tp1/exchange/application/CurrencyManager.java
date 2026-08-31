@@ -52,6 +52,6 @@ public class CurrencyManager {
 	}
 
 	private ConvertedAmount toConvertedAmount(MoneyAmount amount, Currency to, CurrencyRate rate) {
-		return new ConvertedAmount(to, new MoneyAmount(to, amount.multiply(rate.rate())), rate);
+		return new ConvertedAmount(new MoneyAmount(to, amount.multiply(rate.rate())), rate);
 	}
 }

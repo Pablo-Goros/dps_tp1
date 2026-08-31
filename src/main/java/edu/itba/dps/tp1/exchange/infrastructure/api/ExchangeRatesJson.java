@@ -2,11 +2,11 @@ package edu.itba.dps.tp1.exchange.infrastructure.api;
 
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneOffset;
 import java.util.Currency;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.google.gson.Gson;
@@ -29,25 +29,25 @@ final class ExchangeRatesJson {
 	static Map<Currency, CurrencyRate> parseLatestRates(
 			String body, List<Currency> requested, Instant retrievedAt) {
 		final LatestRatesResponse response = GSON.fromJson(body, LatestRatesResponse.class);
-		return toCurrencyRates(response.data, requested, retrievedAt);
+		return toCurrencyRates(response.data, requested, Optional.empty(), retrievedAt);
 	}
 
 	static Map<Currency, CurrencyRate> parseHistoricalRates(
-			String body, List<Currency> requested, LocalDate date) {
+			String body, List<Currency> requested, LocalDate date, Instant retrievedAt) {
 		final HistoricalRatesResponse response = GSON.fromJson(body, HistoricalRatesResponse.class);
-		final Instant timestamp = date.atStartOfDay(ZoneOffset.UTC).toInstant();
-		return toCurrencyRates(response.data.get(date.toString()), requested, timestamp);
+		return toCurrencyRates(response.data.get(date.toString()), requested, Optional.of(date), retrievedAt);
 	}
 
 	private static Map<Currency, CurrencyRate> toCurrencyRates(
-			Map<String, Double> values, List<Currency> requested, Instant timestamp) {
+			Map<String, Double> values, List<Currency> requested,
+			Optional<LocalDate> effectiveDate, Instant retrievedAt) {
 		final Map<Currency, CurrencyRate> rates = new LinkedHashMap<>();
 		for (Currency currency : requested) {
 			final Double value = values.get(currency.getCurrencyCode());
 			if (value == null) {
 				throw new CurrencyNotAvailableException(currency);
 			}
-			rates.put(currency, new CurrencyRate(value, timestamp));
+			rates.put(currency, new CurrencyRate(value, effectiveDate, retrievedAt));
 		}
 		return rates;
 	}

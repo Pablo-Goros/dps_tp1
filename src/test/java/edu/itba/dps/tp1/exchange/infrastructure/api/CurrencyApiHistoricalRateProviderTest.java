@@ -9,8 +9,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.net.URI;
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.Currency;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +29,7 @@ class CurrencyApiHistoricalRateProviderTest {
 	private static final Currency EUR = Currency.getInstance("EUR");
 	private static final Currency JPY = Currency.getInstance("JPY");
 	private static final LocalDate DATE = LocalDate.of(2024, 11, 20);
+	private static final Instant RETRIEVED_AT = Instant.parse("2026-08-31T12:00:00Z");
 
 	// Matches the documented FreeCurrencyAPI /v1/historical response shape.
 	private static final String RESPONSE_BODY = """
@@ -39,7 +42,8 @@ class CurrencyApiHistoricalRateProviderTest {
 
 	@BeforeEach
 	void setUp() {
-		provider = new CurrencyApiHistoricalRateProvider(httpClient, "the-api-key");
+		provider = new CurrencyApiHistoricalRateProvider(
+				httpClient, "the-api-key", Clock.fixed(RETRIEVED_AT, ZoneOffset.UTC));
 	}
 
 	@Test
@@ -52,6 +56,22 @@ class CurrencyApiHistoricalRateProviderTest {
 
 		assertEquals(0.9480900974, rates.get(EUR).rate());
 		assertEquals(155.2721421669, rates.get(JPY).rate());
-		assertEquals(Instant.parse("2024-11-20T00:00:00Z"), rates.get(EUR).timestamp());
+		assertEquals(java.util.Optional.of(DATE), rates.get(EUR).effectiveDate());
+		assertEquals(java.util.Optional.of(DATE), rates.get(JPY).effectiveDate());
+		assertEquals(RETRIEVED_AT, rates.get(EUR).retrievedAt());
+		assertEquals(RETRIEVED_AT, rates.get(JPY).retrievedAt());
+	}
+
+	@Test
+	void publicConstructorUsesTheSystemClock() {
+		when(httpClient.get(any(), any(), any())).thenReturn(new HttpResponse(RESPONSE_BODY, 200));
+		final var systemClockProvider = new CurrencyApiHistoricalRateProvider(httpClient, "the-api-key");
+
+		final var before = Instant.now();
+		final var retrievedAt = systemClockProvider.getRates(USD, List.of(EUR), DATE).get(EUR).retrievedAt();
+		final var after = Instant.now();
+
+		org.junit.jupiter.api.Assertions.assertFalse(retrievedAt.isBefore(before));
+		org.junit.jupiter.api.Assertions.assertFalse(retrievedAt.isAfter(after));
 	}
 }

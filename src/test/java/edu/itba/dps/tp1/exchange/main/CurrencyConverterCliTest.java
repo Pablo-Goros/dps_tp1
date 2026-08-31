@@ -15,6 +15,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Currency;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -45,21 +46,23 @@ class CurrencyConverterCliTest {
 
 	@Test
 	void printsAllSevenFeaturesThroughTheOutputWriter() {
-		final var eurRate = new CurrencyRate(0.9, TIMESTAMP);
-		final var jpyRate = new CurrencyRate(150, TIMESTAMP);
+		final var eurRate = new CurrencyRate(0.9, Optional.empty(), TIMESTAMP);
+		final var jpyRate = new CurrencyRate(150, Optional.empty(), TIMESTAMP);
+		final var historicalEurRate = new CurrencyRate(0.95, Optional.of(LocalDate.of(2024, 11, 20)), TIMESTAMP);
+		final var historicalJpyRate = new CurrencyRate(155, Optional.of(LocalDate.of(2024, 11, 20)), TIMESTAMP);
 
 		when(currencyManager.listSupportedCurrencies()).thenReturn(List.of(BRL, EUR, JPY, USD));
 		when(currencyManager.getRate(USD, EUR)).thenReturn(eurRate);
 		when(currencyManager.convert(eq(new MoneyAmount(BRL, 100)), eq(USD)))
-				.thenReturn(new ConvertedAmount(USD, new MoneyAmount(USD, 10), eurRate));
+				.thenReturn(new ConvertedAmount(new MoneyAmount(USD, 10), eurRate));
 		when(currencyManager.convert(eq(new MoneyAmount(USD, 100)), eq(List.of(EUR, JPY))))
 				.thenReturn(List.of(
-						new ConvertedAmount(EUR, new MoneyAmount(EUR, 90), eurRate),
-						new ConvertedAmount(JPY, new MoneyAmount(JPY, 15000), jpyRate)));
+						new ConvertedAmount(new MoneyAmount(EUR, 90), eurRate),
+						new ConvertedAmount(new MoneyAmount(JPY, 15000), jpyRate)));
 		when(currencyManager.convert(eq(new MoneyAmount(USD, 100)), eq(List.of(EUR, JPY)), any(LocalDate.class)))
 				.thenReturn(List.of(
-						new ConvertedAmount(EUR, new MoneyAmount(EUR, 95), eurRate),
-						new ConvertedAmount(JPY, new MoneyAmount(JPY, 15500), jpyRate)));
+						new ConvertedAmount(new MoneyAmount(EUR, 95), historicalEurRate),
+						new ConvertedAmount(new MoneyAmount(JPY, 15500), historicalJpyRate)));
 
 		cli.run();
 
@@ -68,7 +71,11 @@ class CurrencyConverterCliTest {
 		assertTrue(writtenMessages.get(2).contains("rate used"));
 		assertTrue(writtenMessages.stream().anyMatch(m -> m.contains("2024-11-20")));
 		assertEquals(7, writtenMessages.size());
-		assertTrue(writtenMessages.subList(2, 7).stream()
-				.allMatch(message -> message.contains("timestamp: " + TIMESTAMP)));
+		assertTrue(writtenMessages.subList(1, 7).stream()
+				.allMatch(message -> message.contains(TIMESTAMP.toString())));
+		assertTrue(writtenMessages.subList(2, 5).stream()
+				.noneMatch(message -> message.contains("effective date")));
+		assertTrue(writtenMessages.subList(5, 7).stream()
+				.allMatch(message -> message.contains("effective date: 2024-11-20")));
 	}
 }

@@ -7,6 +7,7 @@ import java.time.Instant;
 import java.util.Currency;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -14,7 +15,8 @@ class CurrencyRateProviderTest {
 
 	private static final Currency USD = Currency.getInstance("USD");
 	private static final Currency EUR = Currency.getInstance("EUR");
-	private static final CurrencyRate RATE = new CurrencyRate(0.9, Instant.parse("2024-11-20T23:59:59Z"));
+	private static final CurrencyRate RATE =
+			new CurrencyRate(0.9, Optional.empty(), Instant.parse("2024-11-20T23:59:59Z"));
 
 	@Test
 	void getRateDefaultsToASingleEntryBatchLookup() {

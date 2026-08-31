@@ -10,6 +10,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.net.URI;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.Currency;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +30,7 @@ class CurrencyApiRateProviderTest {
 	private static final Currency USD = Currency.getInstance("USD");
 	private static final Currency BRL = Currency.getInstance("BRL");
 	private static final Currency EUR = Currency.getInstance("EUR");
+	private static final Instant RETRIEVED_AT = Instant.parse("2026-08-31T12:00:00Z");
 
 	// Matches the documented FreeCurrencyAPI /v1/latest response shape.
 	private static final String RESPONSE_BODY = """
@@ -39,7 +43,8 @@ class CurrencyApiRateProviderTest {
 
 	@BeforeEach
 	void setUp() {
-		provider = new CurrencyApiRateProvider(httpClient, "the-api-key");
+		provider = new CurrencyApiRateProvider(
+				httpClient, "the-api-key", Clock.fixed(RETRIEVED_AT, ZoneOffset.UTC));
 	}
 
 	@Test
@@ -52,19 +57,17 @@ class CurrencyApiRateProviderTest {
 	}
 
 	@Test
-	void parsesEachRequestedCurrencyWithTheSharedRetrievalTimestamp() {
+	void parsesCurrentRatesWithoutAnEffectiveDateAndWithTheSharedRetrievalTimestamp() {
 		when(httpClient.get(any(), any(), any())).thenReturn(new HttpResponse(RESPONSE_BODY, 200));
 
-		final var beforeRequest = java.time.Instant.now();
 		final var rates = provider.getRates(USD, List.of(BRL, EUR));
-		final var afterRequest = java.time.Instant.now();
 
-		final var timestamp = rates.get(BRL).timestamp();
 		assertEquals(5.4321, rates.get(BRL).rate());
 		assertEquals(0.8581081196, rates.get(EUR).rate());
-		assertEquals(timestamp, rates.get(EUR).timestamp());
-		assertFalse(timestamp.isBefore(beforeRequest));
-		assertFalse(timestamp.isAfter(afterRequest));
+		assertFalse(rates.get(BRL).effectiveDate().isPresent());
+		assertFalse(rates.get(EUR).effectiveDate().isPresent());
+		assertEquals(RETRIEVED_AT, rates.get(BRL).retrievedAt());
+		assertEquals(RETRIEVED_AT, rates.get(EUR).retrievedAt());
 	}
 
 	@Test
@@ -74,5 +77,18 @@ class CurrencyApiRateProviderTest {
 		final var jpy = Currency.getInstance("JPY");
 
 		assertThrows(CurrencyNotAvailableException.class, () -> provider.getRates(USD, List.of(jpy)));
+	}
+
+	@Test
+	void publicConstructorUsesTheSystemClock() {
+		when(httpClient.get(any(), any(), any())).thenReturn(new HttpResponse(RESPONSE_BODY, 200));
+		final var systemClockProvider = new CurrencyApiRateProvider(httpClient, "the-api-key");
+
+		final var before = Instant.now();
+		final var retrievedAt = systemClockProvider.getRates(USD, List.of(BRL)).get(BRL).retrievedAt();
+		final var after = Instant.now();
+
+		assertFalse(retrievedAt.isBefore(before));
+		assertFalse(retrievedAt.isAfter(after));
 	}
 }
