@@ -67,6 +67,11 @@
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>${jacoco.version}</version>
+                <configuration>
+                    <excludes>
+                        <exclude>edu/itba/dps/tp1/exchange/main/Main.class</exclude>
+                    </excludes>
+                </configuration>
                 <executions>
                     <execution>
                         <id>prepare-agent</id>
@@ -88,14 +93,6 @@
                             <goal>check</goal>
                         </goals>
                         <configuration>
-                            <!--
-                                Main is the composition root: it only wires concrete
-                                infrastructure (reads env vars, opens real HTTP connections)
-                                and has no business logic of its own to unit test.
-                            -->
-                            <excludes>
-                                <exclude>edu/itba/dps/tp1/exchange/main/Main.class</exclude>
-                            </excludes>
                             <rules>
                                 <rule>
                                     <element>BUNDLE</element>
