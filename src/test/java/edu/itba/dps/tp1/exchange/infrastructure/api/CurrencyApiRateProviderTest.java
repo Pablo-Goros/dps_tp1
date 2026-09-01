@@ -1,14 +1,5 @@
 package edu.itba.dps.tp1.exchange.infrastructure.api;
 
-import edu.itba.dps.tp1.exchange.domain.exception.CurrencyNotAvailableException;
-import edu.itba.dps.tp1.exchange.io.http.HttpClient;
-import edu.itba.dps.tp1.exchange.io.http.HttpResponse;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
 import java.net.URI;
 import java.time.Clock;
 import java.time.Instant;
@@ -20,9 +11,18 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import org.mockito.Mock;
 import static org.mockito.Mockito.when;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import edu.itba.dps.tp1.exchange.domain.exception.CurrencyNotAvailableException;
+import edu.itba.dps.tp1.exchange.io.http.HttpClient;
+import edu.itba.dps.tp1.exchange.io.http.HttpResponse;
 
 @ExtendWith(MockitoExtension.class)
 class CurrencyApiRateProviderTest {
@@ -32,7 +32,6 @@ class CurrencyApiRateProviderTest {
 	private static final Currency EUR = Currency.getInstance("EUR");
 	private static final Instant RETRIEVED_AT = Instant.parse("2026-08-31T12:00:00Z");
 
-	// Matches the documented FreeCurrencyAPI /v1/latest response shape.
 	private static final String RESPONSE_BODY = """
 			{"data":{"BRL":5.4321,"EUR":0.8581081196}}""";
 

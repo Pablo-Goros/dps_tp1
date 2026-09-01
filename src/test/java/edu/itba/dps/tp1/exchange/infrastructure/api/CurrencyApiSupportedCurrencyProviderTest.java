@@ -1,26 +1,23 @@
 package edu.itba.dps.tp1.exchange.infrastructure.api;
 
-import edu.itba.dps.tp1.exchange.io.http.HttpClient;
-import edu.itba.dps.tp1.exchange.io.http.HttpResponse;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
 import java.util.Currency;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import static org.mockito.ArgumentMatchers.any;
+import org.mockito.Mock;
 import static org.mockito.Mockito.when;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import edu.itba.dps.tp1.exchange.io.http.HttpClient;
+import edu.itba.dps.tp1.exchange.io.http.HttpResponse;
 
 @ExtendWith(MockitoExtension.class)
 class CurrencyApiSupportedCurrencyProviderTest {
 
-	// Matches the documented FreeCurrencyAPI /v1/currencies shape, with an extra
-	// malformed code (not 3 letters, so java.util.Currency always rejects it
-	// regardless of the JDK's ISO 4217 table) to exercise the skip branch.
 	private static final String RESPONSE_BODY = """
 			{"data":{"EUR":{"symbol":"\\u20ac","name":"Euro","code":"EUR"},"USD":{"symbol":"$","name":"US Dollar","code":"USD"},"XCOIN":{"symbol":"?","name":"Not a real currency","code":"XCOIN"}}}""";
 

@@ -1,13 +1,5 @@
 package edu.itba.dps.tp1.exchange.infrastructure.api;
 
-import edu.itba.dps.tp1.exchange.io.http.HttpClient;
-import edu.itba.dps.tp1.exchange.io.http.HttpResponse;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
 import java.net.URI;
 import java.time.Clock;
 import java.time.Instant;
@@ -18,9 +10,17 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import org.mockito.Mock;
 import static org.mockito.Mockito.when;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import edu.itba.dps.tp1.exchange.io.http.HttpClient;
+import edu.itba.dps.tp1.exchange.io.http.HttpResponse;
 
 @ExtendWith(MockitoExtension.class)
 class CurrencyApiHistoricalRateProviderTest {
@@ -31,7 +31,6 @@ class CurrencyApiHistoricalRateProviderTest {
 	private static final LocalDate DATE = LocalDate.of(2024, 11, 20);
 	private static final Instant RETRIEVED_AT = Instant.parse("2026-08-31T12:00:00Z");
 
-	// Matches the documented FreeCurrencyAPI /v1/historical response shape.
 	private static final String RESPONSE_BODY = """
 			{"data":{"2024-11-20":{"EUR":0.9480900974,"JPY":155.2721421669}}}""";
 
